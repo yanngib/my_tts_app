@@ -27,7 +27,7 @@ class TtsViewModelWrapper: ObservableObject {
     private var historyJob: Task<Void, Never>?
 
     init() {
-        let allLangs = TtsLanguageKt.SupportedLanguages as! [TtsLanguage]
+        let allLangs = TtsLanguageKt.SupportedLanguages
         self.languages = allLangs
         self.selectedLanguage = allLangs.first!
         self.ttsService = TtsService()
@@ -102,7 +102,7 @@ class TtsViewModelWrapper: ObservableObject {
     private func startHistoryCollection() {
         historyJob = Task {
             while !Task.isCancelled {
-                let items = repository.currentHistory() as? [TtsHistoryItem] ?? []
+                let items = repository.currentHistory()
                 await MainActor.run { self.history = items }
                 try? await Task.sleep(nanoseconds: 500_000_000)
             }
