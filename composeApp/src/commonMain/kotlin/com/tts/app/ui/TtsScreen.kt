@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +38,7 @@ fun TtsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val isSpeaking = state.ttsState is TtsState.Speaking
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
 
     val buttonScale by animateFloatAsState(
         targetValue = if (isSpeaking) 0.95f else 1f,
@@ -47,6 +51,7 @@ fun TtsScreen(
             .fillMaxSize()
             .padding(paddingValues)
             .padding(horizontal = 20.dp)
+            .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
