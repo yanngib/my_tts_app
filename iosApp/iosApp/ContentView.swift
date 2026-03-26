@@ -3,6 +3,7 @@ import SharedTts
 
 struct ContentView: View {
     @StateObject private var vm = TtsViewModelWrapper()
+    @StateObject private var speech = SpeechRecognizer()
     @State private var showHistory = false
     @FocusState private var isEditing: Bool
 
@@ -13,9 +14,23 @@ struct ContentView: View {
 
                     // ── Text Input ───────────────────────────────────────
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Text to Speak", systemImage: "text.bubble")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
+                        HStack(alignment: .center) {
+                            Label("Text to Speak", systemImage: "text.bubble")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            // Press-and-hold mic button
+                            MicButton(isRecording: speech.isRecording) { pressing in
+                                if pressing {
+                                    isEditing = false
+                                    vm.inputText = ""        // clear immediately on press
+                                    speech.startRecording(localeTag: vm.selectedLanguage.tag)
+                                } else {
+                                    let result = speech.stopRecording()
+                                    vm.inputText = result    // write final transcript on release
+                                }
+                            }
+                        }
                         TextEditor(text: $vm.inputText)
                             .focused($isEditing)
                             .frame(minHeight: 120)
@@ -24,9 +39,20 @@ struct ContentView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+                                    .stroke(
+                                        speech.isRecording
+                                            ? Color.red.opacity(0.7)
+                                            : Color.accentColor.opacity(0.3),
+                                        lineWidth: speech.isRecording ? 2 : 1
+                                    )
                             )
+                            .onChange(of: speech.transcript) { newValue in
+                                if speech.isRecording {
+                                    vm.inputText = newValue  // stream live partial text into the box
+                                }
+                            }
                     }
+                    .onAppear { speech.requestPermissions() }
 
                     // ── Language Picker ───────────────────────────────────
                     VStack(alignment: .leading, spacing: 8) {
@@ -110,6 +136,52 @@ struct ContentView: View {
                 HistoryView(vm: vm)
             }
         }
+    }
+}
+
+// MARK: - Mic Button
+/// A press-and-hold button that signals recording state via a Boolean closure.
+private struct MicButton: View {
+    let isRecording: Bool
+    /// Called with `true` when the press begins, `false` when released.
+    let onPressChange: (Bool) -> Void
+
+    var body: some View {
+        Image(systemName: isRecording ? "mic.fill" : "mic")
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundStyle(isRecording ? .white : .accentColor)
+            .padding(10)
+            .background(
+                isRecording
+                    ? AnyShapeStyle(Color.red)
+                    : AnyShapeStyle(Color.accentColor.opacity(0.12))
+            )
+            .clipShape(Circle())
+            .scaleEffect(isRecording ? 1.15 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isRecording)
+            // Pulse ring while recording
+            .overlay {
+                if isRecording {
+                    Circle()
+                        .stroke(Color.red.opacity(0.4), lineWidth: 3)
+                        .scaleEffect(1.4)
+                        .animation(
+                            .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                            value: isRecording
+                        )
+                }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isRecording { onPressChange(true) }
+                    }
+                    .onEnded { _ in
+                        onPressChange(false)
+                    }
+            )
+            .accessibilityLabel(isRecording ? "Stop recording" : "Record voice input")
+            .accessibilityHint(isRecording ? "Release to transcribe" : "Hold to record")
     }
 }
 

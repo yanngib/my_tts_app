@@ -11,6 +11,7 @@
 		B001000C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001000D /* ContentView.swift */; };
 		B001000E /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001000F /* HistoryView.swift */; };
 		B0010010 /* TtsViewModelWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0010011 /* TtsViewModelWrapper.swift */; };
+		B0010030 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0010031 /* SpeechRecognizer.swift */; };
 		B0010012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0010013 /* Assets.xcassets */; };
 		B0010014 /* SharedTts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0010015 /* SharedTts.framework */; };
 		B0010016 /* SharedTts.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B0010015 /* SharedTts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -35,6 +36,7 @@
 		B001000D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B001000F /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		B0010011 /* TtsViewModelWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TtsViewModelWrapper.swift; sourceTree = "<group>"; };
+		B0010031 /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
 		B0010013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0010015 /* SharedTts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SharedTts.framework; path = ../shared/build/bin/iosArm64/debugFramework/SharedTts.framework; sourceTree = SOURCE_ROOT; };
 		B0010020 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,6 +69,7 @@
 				B001000D /* ContentView.swift */,
 				B001000F /* HistoryView.swift */,
 				B0010011 /* TtsViewModelWrapper.swift */,
+				B0010031 /* SpeechRecognizer.swift */,
 				B0010013 /* Assets.xcassets */,
 			);
 			path = iosApp;
@@ -163,6 +166,7 @@
 				B001000C /* ContentView.swift in Sources */,
 				B001000E /* HistoryView.swift in Sources */,
 				B0010010 /* TtsViewModelWrapper.swift in Sources */,
+				B0010030 /* SpeechRecognizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,6 +299,8 @@
 					"$(SRCROOT)/../shared/build/bin/iosArm64/debugFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Microphone access is needed to record your voice for speech-to-text input.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition is used to convert your voice recording into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -326,6 +332,8 @@
 					"$(SRCROOT)/../shared/build/bin/iosArm64/debugFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Microphone access is needed to record your voice for speech-to-text input.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition is used to convert your voice recording into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
