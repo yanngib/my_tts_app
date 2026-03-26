@@ -85,16 +85,11 @@ class TtsViewModelWrapper: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 let state = self.ttsService.state.value
-                if state is TtsState.Speaking {
-                    self.isSpeaking = true
-                    self.errorMessage = nil
-                } else if let err = state as? TtsState.Error {
-                    self.isSpeaking = false
-                    self.errorMessage = err.message
-                } else {
-                    self.isSpeaking = false
-                    self.errorMessage = nil
-                }
+                let newIsSpeaking = state is TtsState.Speaking
+                let newError = (state as? TtsState.Error)?.message
+                // Only publish when values actually change — prevents Picker flicker
+                if self.isSpeaking != newIsSpeaking { self.isSpeaking = newIsSpeaking }
+                if self.errorMessage != newError { self.errorMessage = newError }
             }
         }
     }
@@ -102,8 +97,12 @@ class TtsViewModelWrapper: ObservableObject {
     private func startHistoryCollection() {
         historyJob = Task {
             while !Task.isCancelled {
-                let items = repository.currentHistory()
-                await MainActor.run { self.history = items }
+                let newItems = repository.currentHistory()
+                let newIds = newItems.map { $0.id }
+                let currentIds = await MainActor.run { self.history.map { $0.id } }
+                if newIds != currentIds {
+                    await MainActor.run { self.history = newItems }
+                }
                 try? await Task.sleep(nanoseconds: 500_000_000)
             }
         }
