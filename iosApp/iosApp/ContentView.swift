@@ -1,10 +1,14 @@
 import SwiftUI
 import SharedTts
+import Translation
 
 struct ContentView: View {
     @StateObject private var vm = TtsViewModelWrapper()
     @StateObject private var speech = SpeechRecognizer()
     @State private var showHistory = false
+    @State private var showTranslation = false
+    @State private var textForTranslation = ""
+    @State private var inputLangTag: String?
     @FocusState private var isEditing: Bool
 
     var body: some View {
@@ -28,6 +32,7 @@ struct ContentView: View {
                                 } else {
                                     let result = speech.stopRecording()
                                     vm.inputText = result    // write final transcript on release
+                                    inputLangTag = vm.selectedLanguage.tag  // text is now in this language
                                 }
                             }
                         }
@@ -53,6 +58,20 @@ struct ContentView: View {
                             }
                     }
                     .onAppear { speech.requestPermissions() }
+
+                    // ── Translate Button ──────────────────────────────────
+                    HStack {
+                        Spacer()
+                        Button {
+                            textForTranslation = vm.inputText
+                            showTranslation = true
+                        } label: {
+                            Label("Translate", systemImage: "translate")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.accentColor)
+                        .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
 
                     // ── Language Picker ───────────────────────────────────
                     VStack(alignment: .leading, spacing: 8) {
@@ -89,17 +108,7 @@ struct ContentView: View {
 
                     // ── Error Banner ──────────────────────────────────────
                     if let error = vm.errorMessage {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
-                            Text(error)
-                                .font(.callout)
-                                .foregroundStyle(.red)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.red.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        ErrorBanner(message: error)
                     }
 
                     // ── Action Buttons ────────────────────────────────────
@@ -120,6 +129,7 @@ struct ContentView: View {
                 }
                 .padding()
             }
+
             .onTapGesture { isEditing = false }
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("TTS App")
@@ -135,7 +145,35 @@ struct ContentView: View {
             .sheet(isPresented: $showHistory) {
                 HistoryView(vm: vm)
             }
+        } // Closes NavigationStack
+        .translationPresentation(
+            isPresented: $showTranslation,
+            text: textForTranslation
+        ) { translated in
+            vm.inputText = translated
+            inputLangTag = vm.selectedLanguage.tag
         }
+    }
+}
+
+// MARK: - Error Banner
+private struct ErrorBanner: View {
+    let message: String
+    var icon: String = "exclamationmark.triangle.fill"
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(.red)
+            Text(message)
+                .font(.callout)
+                .foregroundStyle(.red)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.red.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 
