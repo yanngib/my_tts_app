@@ -1,0 +1,65 @@
+# ──────────────────────────────────────────────
+# Gradle
+# ──────────────────────────────────────────────
+.gradle/
+build/
+**/build/
+local.properties
+*.local.properties
+
+# Gradle wrapper jars (keep gradlew scripts, ignore the jar)
+gradle/wrapper/gradle-wrapper.jar
+
+# ──────────────────────────────────────────────
+# Android / IntelliJ / Android Studio
+# ──────────────────────────────────────────────
+*.iml
+.idea/
+*.keystore
+!debug.keystore
+captures/
+.externalNativeBuild/
+.cxx/
+*.ap_
+*.apk
+*.aab
+
+# ──────────────────────────────────────────────
+# Kotlin / Kotlin Native
+# ──────────────────────────────────────────────
+.kotlin/
+**/.kotlin/
+*.klib
+
+# KMP iOS framework build output
+shared/build/
+
+# ──────────────────────────────────────────────
+# Xcode / iOS
+# ──────────────────────────────────────────────
+iosApp/iosApp.xcodeproj/xcuserdata/
+iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/
+iosApp/*.xcworkspace/
+*.xcuserstate
+*.xcbkptlist
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+Pods/
+
+# Xcode generated
+iosApp/iosApp/GeneratedAssets/
+
+# ──────────────────────────────────────────────
+# macOS
+# ──────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+
+# ──────────────────────────────────────────────
+# Room schema snapshots (optional — commit if you want migration history)
+# ──────────────────────────────────────────────
+# shared/schemas/
