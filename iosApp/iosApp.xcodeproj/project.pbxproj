@@ -108,8 +108,8 @@
 			);
 			dependencies = (
 			);
-			name = iosApp;
-			productName = iosApp;
+			name = "TTS Test";
+			productName = "TTS Test";
 			productReference = B0010020 /* iosApp.app */;
 			productType = "com.apple.product-type.application";
 		};
