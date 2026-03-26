@@ -4,6 +4,7 @@ import SharedTts
 struct ContentView: View {
     @StateObject private var vm = TtsViewModelWrapper()
     @State private var showHistory = false
+    @FocusState private var isEditing: Bool
 
     var body: some View {
         NavigationStack {
@@ -16,6 +17,7 @@ struct ContentView: View {
                             .font(.headline)
                             .foregroundStyle(.primary)
                         TextEditor(text: $vm.inputText)
+                            .focused($isEditing)
                             .frame(minHeight: 120)
                             .padding(10)
                             .background(Color(.secondarySystemBackground))
@@ -92,6 +94,8 @@ struct ContentView: View {
                 }
                 .padding()
             }
+            .onTapGesture { isEditing = false }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("TTS App")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
