@@ -64,6 +64,7 @@ struct HistoryView: View {
 
     /// Decided once at init so the restore happens on the very first render.
     private let shouldRestore: Bool
+    @State private var showClearConfirm = false
 
     init(vm: TtsViewModelWrapper) {
         self.vm = vm
@@ -131,12 +132,16 @@ struct HistoryView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if !vm.history.isEmpty {
                         Button(role: .destructive) {
-                            vm.clearHistory()
+                            showClearConfirm = true
                         } label: {
                             Label("Clear All", systemImage: "trash")
                         }
                     }
                 }
+            }
+            .confirmationDialog("Clear all history?", isPresented: $showClearConfirm, titleVisibility: .visible) {
+                Button("Clear All", role: .destructive) { vm.clearHistory() }
+                Button("Cancel", role: .cancel) { }
             }
         }
     }
