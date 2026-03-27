@@ -72,6 +72,11 @@ private struct HistoryRowView: View {
                 Label(String(format: "Speed %.1f", item.rate), systemImage: "speedometer")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if !item.languageTag.isEmpty {
+                    Label(item.languageTag, systemImage: "globe")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Text(Date(timeIntervalSince1970: TimeInterval(item.timestamp) / 1000), style: .relative)
                     .font(.caption2)

@@ -10,11 +10,12 @@ data class TtsHistoryEntity(
     val text: String,
     val pitch: Float,
     val rate: Float,
-    val timestamp: Long
+    val timestamp: Long,
+    val languageTag: String = ""
 )
 
 fun TtsHistoryEntity.toDomain(): TtsHistoryItem =
-    TtsHistoryItem(id = id, text = text, pitch = pitch, rate = rate, timestamp = timestamp)
+    TtsHistoryItem(id = id, text = text, pitch = pitch, rate = rate, timestamp = timestamp, languageTag = languageTag)
 
 fun TtsHistoryItem.toEntity(): TtsHistoryEntity =
-    TtsHistoryEntity(id = id, text = text, pitch = pitch, rate = rate, timestamp = timestamp)
+    TtsHistoryEntity(id = id, text = text, pitch = pitch, rate = rate, timestamp = timestamp, languageTag = languageTag)

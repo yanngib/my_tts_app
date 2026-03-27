@@ -164,6 +164,14 @@ private fun HistoryCard(
                     label = { Text("Speed: ${String.format("%.1f", item.rate)}", fontSize = 11.sp) },
                     modifier = Modifier.height(26.dp)
                 )
+                if (item.languageTag.isNotEmpty()) {
+                    Spacer(Modifier.width(6.dp))
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(item.languageTag, fontSize = 11.sp) },
+                        modifier = Modifier.height(26.dp)
+                    )
+                }
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = dateFormat.format(Date(item.timestamp)),

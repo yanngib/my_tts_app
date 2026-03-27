@@ -91,7 +91,8 @@ class TtsViewModel(
                     text = text,
                     pitch = pitch,
                     rate = rate,
-                    timestamp = currentTimeMillis()
+                    timestamp = currentTimeMillis(),
+                    languageTag = _language.value.tag
                 )
             )
         }
@@ -105,7 +106,13 @@ class TtsViewModel(
         _inputText.update { item.text }
         _pitch.update { item.pitch }
         _rate.update { item.rate }
-        ttsService.speak(item.text, item.pitch, item.rate, _language.value.tag)
+        // Restore the language the text was originally spoken in (if available)
+        if (item.languageTag.isNotEmpty()) {
+            val lang = SupportedLanguages.find { it.tag == item.languageTag }
+            if (lang != null) _language.update { lang }
+        }
+        val localeTag = if (item.languageTag.isNotEmpty()) item.languageTag else _language.value.tag
+        ttsService.speak(item.text, item.pitch, item.rate, localeTag)
     }
 
     fun onDeleteItem(id: Long) {

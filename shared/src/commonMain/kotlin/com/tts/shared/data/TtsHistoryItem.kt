@@ -8,5 +8,6 @@ data class TtsHistoryItem(
     val text: String,
     val pitch: Float,
     val rate: Float,
-    val timestamp: Long
+    val timestamp: Long,
+    val languageTag: String = ""   // BCP-47 of the language spoken, e.g. "en-US"
 )

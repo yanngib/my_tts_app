@@ -54,7 +54,8 @@ class TtsViewModelWrapper: ObservableObject {
             text: text,
             pitch: pitch,
             rate: rate,
-            timestamp: Int64(Date().timeIntervalSince1970 * 1000)
+            timestamp: Int64(Date().timeIntervalSince1970 * 1000),
+            languageTag: selectedLanguage.tag
         )
         Task { try? await repository.addItem(item: item) }
     }
@@ -67,7 +68,12 @@ class TtsViewModelWrapper: ObservableObject {
         inputText = item.text
         pitch = item.pitch
         rate = item.rate
-        ttsService.speak(text: item.text, pitch: item.pitch, rate: item.rate, localeTag: selectedLanguage.tag)
+        // Restore the language the text was originally spoken in (if saved)
+        if !item.languageTag.isEmpty, let lang = languages.first(where: { $0.tag == item.languageTag }) {
+            selectedLanguage = lang
+        }
+        let localeTag = item.languageTag.isEmpty ? selectedLanguage.tag : item.languageTag
+        ttsService.speak(text: item.text, pitch: item.pitch, rate: item.rate, localeTag: localeTag)
     }
 
     func deleteItem(_ item: TtsHistoryItem) {
