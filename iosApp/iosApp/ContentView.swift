@@ -6,9 +6,11 @@ struct ContentView: View {
     @StateObject private var vm = TtsViewModelWrapper()
     @StateObject private var speech = SpeechRecognizer()
     @State private var showHistory = false
-    @State private var showTranslation = false
-    @State private var textForTranslation = ""
-    @State private var inputLangTag: String?
+    @State private var translationConfig: TranslationSession.Configuration?
+    @State private var pendingText: String = ""
+    @State private var isTranslating = false
+    @State private var translationError: String?
+    @State private var inputLangTag: String?    // BCP-47 of language currently in the text box
     @FocusState private var isEditing: Bool
 
     var body: some View {
@@ -63,14 +65,37 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         Button {
-                            textForTranslation = vm.inputText
-                            showTranslation = true
+                            pendingText = vm.inputText
+                            translationError = nil
+                            // Source = language the text was recorded/typed in; nil = auto-detect
+                            let srcLang: Locale.Language? = inputLangTag.flatMap {
+                                $0.split(separator: "-").first.map { Locale.Language(identifier: String($0)) }
+                            }
+                            // Target = currently selected language
+                            let tgtTag = vm.selectedLanguage.tag
+                            let tgtLang = Locale.Language(
+                                identifier: String(tgtTag.split(separator: "-").first ?? Substring(tgtTag))
+                            )
+                            if translationConfig == nil {
+                                translationConfig = TranslationSession.Configuration(source: srcLang, target: tgtLang)
+                            } else {
+                                translationConfig!.source = srcLang
+                                translationConfig!.target = tgtLang
+                                translationConfig!.invalidate()
+                            }
                         } label: {
-                            Label("Translate", systemImage: "translate")
+                            if isTranslating {
+                                HStack(spacing: 6) {
+                                    ProgressView().controlSize(.small)
+                                    Text("Translating…")
+                                }
+                            } else {
+                                Label("Translate", systemImage: "translate")
+                            }
                         }
                         .buttonStyle(.bordered)
                         .tint(.accentColor)
-                        .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .disabled(vm.inputText.trimmingCharacters(in: .whitespaces).isEmpty || isTranslating)
                     }
 
                     // ── Language Picker ───────────────────────────────────
@@ -106,9 +131,12 @@ struct ContentView: View {
                         range: 0.25...2.0
                     )
 
-                    // ── Error Banner ──────────────────────────────────────
+                    // ── Error Banners ─────────────────────────────────────
                     if let error = vm.errorMessage {
                         ErrorBanner(message: error)
+                    }
+                    if let error = translationError {
+                        ErrorBanner(message: error, icon: "translate")
                     }
 
                     // ── Action Buttons ────────────────────────────────────
@@ -145,13 +173,25 @@ struct ContentView: View {
             .sheet(isPresented: $showHistory) {
                 HistoryView(vm: vm)
             }
-        } // Closes NavigationStack
-        .translationPresentation(
-            isPresented: $showTranslation,
-            text: textForTranslation
-        ) { translated in
-            vm.inputText = translated
-            inputLangTag = vm.selectedLanguage.tag
+        }
+        // Translation: source = language text was recorded in; target = selected language
+        .translationTask(translationConfig) { session in
+            guard !pendingText.isEmpty else { return }
+            isTranslating = true
+            do {
+                let requests = [TranslationSession.Request(sourceText: pendingText, clientIdentifier: "main")]
+                let responses = try await session.translations(from: requests)
+                if let translated = responses.first?.targetText, !translated.isEmpty {
+                    vm.inputText = translated
+                    inputLangTag = vm.selectedLanguage.tag
+                    pendingText = ""
+                    translationError = nil
+                }
+            } catch {
+                let ns = error as NSError
+                translationError = "\(error.localizedDescription) [\(ns.domain) \(ns.code)]"
+            }
+            isTranslating = false
         }
     }
 }
