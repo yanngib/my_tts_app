@@ -49,15 +49,24 @@ class TtsViewModelWrapper: ObservableObject {
         let text = inputText.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         ttsService.speak(text: text, pitch: pitch, rate: rate, localeTag: selectedLanguage.tag)
+        let langTag = selectedLanguage.tag
         let item = TtsHistoryItem(
             id: 0,
             text: text,
             pitch: pitch,
             rate: rate,
             timestamp: Int64(Date().timeIntervalSince1970 * 1000),
-            languageTag: selectedLanguage.tag
+            languageTag: langTag
         )
-        Task { try? await repository.addItem(item: item) }
+        Task {
+            let isDuplicate = repository.currentHistory().contains {
+                $0.text == text && $0.languageTag == langTag
+                    && $0.pitch == pitch && $0.rate == rate
+            }
+            if !isDuplicate {
+                try? await repository.addItem(item: item)
+            }
+        }
     }
 
     func stop() {

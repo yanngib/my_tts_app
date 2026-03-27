@@ -86,15 +86,22 @@ class TtsViewModel(
         val localeTag = _language.value.tag
         ttsService.speak(text, pitch, rate, localeTag)
         viewModelScope.launch {
-            repository.addItem(
-                TtsHistoryItem(
-                    text = text,
-                    pitch = pitch,
-                    rate = rate,
-                    timestamp = currentTimeMillis(),
-                    languageTag = _language.value.tag
+            val alreadyExists = repository.getHistory()
+                .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+                .value
+                .any { it.text == text && it.languageTag == _language.value.tag
+                        && it.pitch == pitch && it.rate == rate }
+            if (!alreadyExists) {
+                repository.addItem(
+                    TtsHistoryItem(
+                        text = text,
+                        pitch = pitch,
+                        rate = rate,
+                        timestamp = currentTimeMillis(),
+                        languageTag = _language.value.tag
+                    )
                 )
-            )
+            }
         }
     }
 
