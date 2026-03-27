@@ -160,7 +160,7 @@ struct ContentView: View {
 
             .onTapGesture { isEditing = false }
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle("TTS App")
+            .navigationTitle("TTS Test")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
