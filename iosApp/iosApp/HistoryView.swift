@@ -78,9 +78,6 @@ private struct HistoryRowView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text(Date(timeIntervalSince1970: TimeInterval(item.timestamp) / 1000), style: .relative)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, 4)
