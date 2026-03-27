@@ -16,6 +16,11 @@ class TtsViewModelWrapper: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var history: [TtsHistoryItem] = []
 
+    // MARK: - History scroll position (pixel-exact, 60 s window)
+    var savedHistoryScrollOffset: CGFloat = 0
+    var savedHistoryScrollTime: Date? = nil
+
+
     // MARK: - Languages
     let languages: [TtsLanguage]
 
