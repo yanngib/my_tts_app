@@ -1,27 +1,27 @@
 package com.tts.shared.data
 
+import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import com.tts.shared.currentTimeMillis
+import com.tts.shared.database.TtsHistoryDatabase
+import com.tts.shared.database.TtsHistoryEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import platform.Foundation.NSUserDefaults
 
 /**
- * iOS implementation of [TtsRepository] backed by NSUserDefaults JSON serialization.
- *
- * Format: one entry per line — "id|text|pitch|rate|timestamp|languageTag"
- * (languageTag is optional for backward compat with v1 records)
+ * iOS implementation of [TtsRepository] backed by SQLite via SQLDelight.
+ * The database file lives in the app's default SQLite directory (managed by NativeSqliteDriver).
  */
 class IosTtsRepository : TtsRepository {
 
-    private val defaults = NSUserDefaults.standardUserDefaults
-    private val key = "tts_history"
+    private val driver = NativeSqliteDriver(TtsHistoryDatabase.Schema, "tts_history.db")
+    private val database = TtsHistoryDatabase(driver)
+    private val queries = database.ttsHistoryQueries
 
     private val _history = MutableStateFlow<List<TtsHistoryItem>>(emptyList())
 
     init {
-        _history.value = loadFromDefaults()
+        _history.value = fetchAll()
     }
 
     override fun getHistory(): Flow<List<TtsHistoryItem>> = _history.asStateFlow()
@@ -29,50 +29,37 @@ class IosTtsRepository : TtsRepository {
     fun currentHistory(): List<TtsHistoryItem> = _history.value
 
     override suspend fun addItem(item: TtsHistoryItem) {
-        val updated = listOf(item.copy(id = currentTimeMillis())) + _history.value
-        _history.value = updated
-        saveToDefaults(updated)
+        queries.insert(
+            text        = item.text,
+            pitch       = item.pitch.toDouble(),
+            rate        = item.rate.toDouble(),
+            timestamp   = currentTimeMillis(),
+            languageTag = item.languageTag
+        )
+        _history.value = fetchAll()
     }
 
     override suspend fun deleteItem(id: Long) {
-        val updated = _history.value.filter { it.id != id }
-        _history.value = updated
-        saveToDefaults(updated)
+        queries.deleteById(id)
+        _history.value = fetchAll()
     }
 
     override suspend fun clearAll() {
+        queries.deleteAll()
         _history.value = emptyList()
-        defaults.removeObjectForKey(key)
     }
 
-    // Persist as: "id|text|pitch|rate|timestamp|languageTag"
-    // (pipe chars inside text are escaped as \|)
-    private fun saveToDefaults(items: List<TtsHistoryItem>) {
-        val encoded = items.joinToString(separator = "\n") { item ->
-            val safeText = item.text.replace("|", "\\|")
-            "${item.id}|${safeText}|${item.pitch}|${item.rate}|${item.timestamp}|${item.languageTag}"
-        }
-        defaults.setObject(encoded, forKey = key)
-    }
+    // ── helpers ───────────────────────────────────────────────────────────────
 
-    private fun loadFromDefaults(): List<TtsHistoryItem> {
-        val raw = defaults.stringForKey(key) ?: return emptyList()
-        if (raw.isBlank()) return emptyList()
-        return raw.lines().mapNotNull { line ->
-            val parts = line.split("|")
-            if (parts.size < 5) return@mapNotNull null
-            try {
-                TtsHistoryItem(
-                    id           = parts[0].toLong(),
-                    text         = parts[1].replace("\\|", "|"),
-                    pitch        = parts[2].toFloat(),
-                    rate         = parts[3].toFloat(),
-                    timestamp    = parts[4].toLong(),
-                    languageTag  = if (parts.size >= 6) parts[5] else ""   // backward compat
-                )
-            } catch (_: Exception) {
-                null
-            }
-        }
-    }
+    private fun fetchAll(): List<TtsHistoryItem> =
+        queries.selectAll().executeAsList().map { it.toDomain() }
 }
+
+private fun TtsHistoryEntry.toDomain() = TtsHistoryItem(
+    id          = id,
+    text        = text,
+    pitch       = pitch.toFloat(),
+    rate        = rate.toFloat(),
+    timestamp   = timestamp,
+    languageTag = languageTag
+)

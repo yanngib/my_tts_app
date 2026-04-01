@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS TtsHistoryEntry (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    text        TEXT    NOT NULL,
+    pitch       REAL    NOT NULL,
+    rate        REAL    NOT NULL,
+    timestamp   INTEGER NOT NULL,
+    languageTag TEXT    NOT NULL DEFAULT ''
+);
+
+selectAll:
+SELECT * FROM TtsHistoryEntry ORDER BY timestamp DESC;
+
+insert:
+INSERT INTO TtsHistoryEntry(text, pitch, rate, timestamp, languageTag)
+VALUES (?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM TtsHistoryEntry WHERE id = ?;
+
+deleteAll:
+DELETE FROM TtsHistoryEntry;

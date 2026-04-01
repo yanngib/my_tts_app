@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -34,6 +35,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.lifecycle.viewmodel)
+            implementation(libs.sqldelight.runtime)
         }
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
@@ -41,6 +43,9 @@ kotlin {
         }
         val iosMain by creating {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.sqldelight.native.driver)
+            }
         }
         val iosArm64Main by getting { dependsOn(iosMain) }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
@@ -61,6 +66,14 @@ android {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+sqldelight {
+    databases {
+        create("TtsHistoryDatabase") {
+            packageName.set("com.tts.shared.database")
+        }
+    }
 }
 
 dependencies {
